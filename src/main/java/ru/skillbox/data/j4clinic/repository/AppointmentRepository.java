@@ -52,27 +52,27 @@ public class AppointmentRepository {
 		);
 	}
 
-	public void insert(Appointment a) {
+	public void insert(Appointment appointment) {
 		jdbcTemplate.update(
 			"INSERT INTO appointments (id, patient_full_name, doctor_full_name, doctor_position, appointment_time, created_at, comment) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			a.getId(),
-			a.getPatientFullName(),
-			a.getDoctorFullName(),
-			a.getDoctorPosition(),
-			a.getAppointmentTime(),
-			a.getCreatedAt(),
-			a.getComment()
+			appointment.getId(),
+			appointment.getPatientFullName(),
+			appointment.getDoctorFullName(),
+			appointment.getDoctorPosition(),
+			appointment.getAppointmentTime(),
+			appointment.getCreatedAt(),
+			appointment.getComment()
 		);
 	}
 
-	public boolean update(Appointment a) {
+	public boolean update(Appointment appointment) {
 		int updated = jdbcTemplate.update(
 			"UPDATE appointments SET doctor_full_name = ?, doctor_position = ?, appointment_time = ?, comment = ? WHERE id = ?",
-			a.getDoctorFullName(),
-			a.getDoctorPosition(),
-			a.getAppointmentTime(),
-			a.getComment(),
-			a.getId()
+			appointment.getDoctorFullName(),
+			appointment.getDoctorPosition(),
+			appointment.getAppointmentTime(),
+			appointment.getComment(),
+			appointment.getId()
 		);
 		return updated > 0;
 	}

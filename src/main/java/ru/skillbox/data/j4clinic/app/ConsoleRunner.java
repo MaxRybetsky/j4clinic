@@ -88,14 +88,14 @@ public class ConsoleRunner implements CommandLineRunner {
 			System.out.println("Запись не найдена");
 			return;
 		}
-		Appointment a = appt.get();
-		System.out.println("ID: " + a.getId());
-		System.out.println("Пациент: " + a.getPatientFullName());
-		System.out.println("Врач: " + a.getDoctorFullName());
-		System.out.println("Должность: " + a.getDoctorPosition());
-		System.out.println("Время приёма: " + a.getAppointmentTime().format(DATE_TIME_FORMATTER));
-		System.out.println("Создано: " + a.getCreatedAt().format(DATE_TIME_FORMATTER));
-		System.out.println("Комментарий: " + (a.getComment() == null ? "" : a.getComment()));
+		Appointment appointment = appt.get();
+		System.out.println("ID: " + appointment.getId());
+		System.out.println("Пациент: " + appointment.getPatientFullName());
+		System.out.println("Врач: " + appointment.getDoctorFullName());
+		System.out.println("Должность: " + appointment.getDoctorPosition());
+		System.out.println("Время приёма: " + appointment.getAppointmentTime().format(DATE_TIME_FORMATTER));
+		System.out.println("Создано: " + appointment.getCreatedAt().format(DATE_TIME_FORMATTER));
+		System.out.println("Комментарий: " + (appointment.getComment() == null ? "" : appointment.getComment()));
 	}
 
 	private void editAppointment(Scanner scanner) {
@@ -170,12 +170,12 @@ public class ConsoleRunner implements CommandLineRunner {
 			System.out.println("Записей нет.");
 			return;
 		}
-		for (Appointment a : list) {
+		for (Appointment appointment : list) {
 			System.out.println(
-					a.getId() + " | " +
-					a.getPatientFullName() + " | " +
-					a.getDoctorFullName() + " | " +
-					a.getAppointmentTime().format(DATE_TIME_FORMATTER)
+					appointment.getId() + " | " +
+					appointment.getPatientFullName() + " | " +
+					appointment.getDoctorFullName() + " | " +
+					appointment.getAppointmentTime().format(DATE_TIME_FORMATTER)
 			);
 		}
 	}

@@ -27,17 +27,17 @@ public class AppointmentService {
 		validateNonEmpty(doctorPosition, "doctor_position");
 		validateAppointmentTime(appointmentTime);
 
-		Appointment a = new Appointment();
-		a.setId(UUID.randomUUID());
-		a.setPatientFullName(patientFullName.trim());
-		a.setDoctorFullName(doctorFullName.trim());
-		a.setDoctorPosition(doctorPosition.trim());
-		a.setAppointmentTime(appointmentTime);
-		a.setCreatedAt(LocalDateTime.now());
-		a.setComment(comment == null || comment.isBlank() ? null : comment.trim());
+		Appointment appointment = new Appointment();
+		appointment.setId(UUID.randomUUID());
+		appointment.setPatientFullName(patientFullName.trim());
+		appointment.setDoctorFullName(doctorFullName.trim());
+		appointment.setDoctorPosition(doctorPosition.trim());
+		appointment.setAppointmentTime(appointmentTime);
+		appointment.setCreatedAt(LocalDateTime.now());
+		appointment.setComment(comment == null || comment.isBlank() ? null : comment.trim());
 
-		repository.insert(a);
-		return a;
+		repository.insert(appointment);
+		return appointment;
 	}
 
 	public Optional<Appointment> getById(UUID id) {
