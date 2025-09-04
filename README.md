@@ -1,6 +1,6 @@
 # Clinic Appointments (Консольное приложение)
 
-Простое консольное приложение на Spring Boot 3 для управления записями на приём в клинике. Данные хранятся в PostgreSQL. Приложение использует Spring JDBC Template и миграции базы данных Flyway.
+Простое консольное приложение на Spring Boot 3 для управления записями на приём в клинике. Данные хранятся в PostgreSQL. Репозиторий использует нативный JDBC (DataSource + java.sql.*) без Spring JDBC Template. Пул соединений на базе HikariCP настраивается вручную через `DataSourceConfig`. Миграции базы данных выполняются через Flyway и запускаются автоматически при старте приложения (см. `FlywayConfig`).
 
 ## Требования
 - Java 17+
@@ -19,6 +19,16 @@ spring:
     password: postrges
   flyway:
     enabled: true
+
+# Необязательные настройки пула HikariCP
+app:
+  datasource:
+    pool:
+      max-size: 10
+      min-idle: 2
+      idle-timeout-ms: 600000
+      max-lifetime-ms: 1800000
+      connection-timeout-ms: 30000
 ```
 
 При запуске приложения Flyway автоматически применит миграции из каталога `src/main/resources/db/migration` (в проекте используется один файл `V1__create_appointments.sql`).
@@ -60,6 +70,6 @@ java -jar target/clinic-app-1.0.jar
 ## Структура проекта (слои)
 - `app` — консольное взаимодействие (меню, ввод/вывод)
 - `service` — бизнес-логика и валидация
-- `repository` — доступ к БД через Spring JDBC Template
+- `repository` — доступ к БД через нативный JDBC (DataSource + PreparedStatement)
 - `model` — модель сущности `Appointment`
 
