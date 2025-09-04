@@ -53,32 +53,32 @@ public class AppointmentRepository {
 		}
 	}
 
-	public void insert(Appointment a) {
+	public void insert(Appointment appointment) {
 		final String sql = "INSERT INTO appointments (id, patient_full_name, doctor_full_name, doctor_position, appointment_time, created_at, comment) VALUES (?, ?, ?, ?, ?, ?, ?)";
 		try (Connection connection = dataSource.getConnection();
 			 PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setObject(1, a.getId());
-			ps.setString(2, a.getPatientFullName());
-			ps.setString(3, a.getDoctorFullName());
-			ps.setString(4, a.getDoctorPosition());
-			ps.setObject(5, a.getAppointmentTime());
-			ps.setObject(6, a.getCreatedAt());
-			ps.setString(7, a.getComment());
+			ps.setObject(1, appointment.getId());
+			ps.setString(2, appointment.getPatientFullName());
+			ps.setString(3, appointment.getDoctorFullName());
+			ps.setString(4, appointment.getDoctorPosition());
+			ps.setObject(5, appointment.getAppointmentTime());
+			ps.setObject(6, appointment.getCreatedAt());
+			ps.setString(7, appointment.getComment());
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException("Failed to insert appointment", e);
 		}
 	}
 
-	public boolean update(Appointment a) {
+	public boolean update(Appointment appointment) {
 		final String sql = "UPDATE appointments SET doctor_full_name = ?, doctor_position = ?, appointment_time = ?, comment = ? WHERE id = ?";
 		try (Connection connection = dataSource.getConnection();
 			 PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setString(1, a.getDoctorFullName());
-			ps.setString(2, a.getDoctorPosition());
-			ps.setObject(3, a.getAppointmentTime());
-			ps.setString(4, a.getComment());
-			ps.setObject(5, a.getId());
+			ps.setString(1, appointment.getDoctorFullName());
+			ps.setString(2, appointment.getDoctorPosition());
+			ps.setObject(3, appointment.getAppointmentTime());
+			ps.setString(4, appointment.getComment());
+			ps.setObject(5, appointment.getId());
 			int updated = ps.executeUpdate();
 			return updated > 0;
 		} catch (SQLException e) {
