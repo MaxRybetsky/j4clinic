@@ -1,5 +1,9 @@
 package ru.skillbox.data.j4clinic.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import ru.skillbox.data.j4clinic.model.Appointment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,72 +17,115 @@ import java.util.UUID;
 
 @Repository
 public class AppointmentRepository {
-	private final JdbcTemplate jdbcTemplate;
-	private static final RowMapper<Appointment> ROW_MAPPER_BY_BEAN = BeanPropertyRowMapper.newInstance(Appointment.class);
-	private static final RowMapper<Appointment> ROW_MAPPER_MANUAL = (resultSet, rowNum) -> {
-		Appointment appointment = new Appointment();
+    private static final Logger log = LoggerFactory.getLogger(AppointmentRepository.class);
+    private final JdbcTemplate jdbcTemplate;
 
-		appointment.setId(resultSet.getObject("id", UUID.class));
-		appointment.setPatientFullName(resultSet.getString("patient_full_name"));
-		appointment.setDoctorFullName(resultSet.getString("doctor_full_name"));
-		appointment.setDoctorPosition(resultSet.getString("doctor_position"));
-		appointment.setAppointmentTime(resultSet.getObject("appointment_time", LocalDateTime.class));
-		appointment.setCreatedAt(resultSet.getObject("created_at", LocalDateTime.class));
-		appointment.setComment(resultSet.getString("comment"));
+    /**
+     * Автоматически созданный RowMapper
+     */
+    private static final RowMapper<Appointment> ROW_MAPPER_BY_BEAN = BeanPropertyRowMapper.newInstance(Appointment.class);
 
-		return appointment;
-	};
+    /**
+     * RowMapper, созданный вручную с явным указанием маппингов.
+     */
+    private static final RowMapper<Appointment> ROW_MAPPER_MANUAL = (resultSet, rowNum) -> {
+        Appointment appointment = new Appointment();
 
-	public AppointmentRepository(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
+        appointment.setId(resultSet.getObject("a_id", UUID.class));
+        appointment.setPatientFullName(resultSet.getString("p_fio"));
+        appointment.setDoctorFullName(resultSet.getString("d_fio"));
+        appointment.setDoctorPosition(resultSet.getString("d_pos"));
+        appointment.setAppointmentTime(resultSet.getObject("app_time", LocalDateTime.class));
+        appointment.setCreatedAt(resultSet.getObject("cr_time", LocalDateTime.class));
+        appointment.setComment(resultSet.getString("comm"));
 
-	public Optional<Appointment> findById(UUID id) {
-		List<Appointment> list = jdbcTemplate.query(
-			"SELECT * FROM appointments WHERE id = ?",
-				ROW_MAPPER_BY_BEAN,
-			id
-		);
-		if (list.isEmpty()) {
-			return Optional.empty();
-		}
-		return Optional.of(list.get(0));
-	}
+        return appointment;
+    };
 
-	public List<Appointment> findAll() {
-		return jdbcTemplate.query(
-			"SELECT * FROM appointments ORDER BY appointment_time ASC",
-				ROW_MAPPER_MANUAL
-		);
-	}
+    @Autowired
+    public AppointmentRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-	public void insert(Appointment appointment) {
-		jdbcTemplate.update(
-			"INSERT INTO appointments (id, patient_full_name, doctor_full_name, doctor_position, appointment_time, created_at, comment) VALUES (?, ?, ?, ?, ?, ?, ?)",
-			appointment.getId(),
-			appointment.getPatientFullName(),
-			appointment.getDoctorFullName(),
-			appointment.getDoctorPosition(),
-			appointment.getAppointmentTime(),
-			appointment.getCreatedAt(),
-			appointment.getComment()
-		);
-	}
+    public Optional<Appointment> findById(UUID id) {
+        try {
+            String sql = "SELECT * FROM appointments WHERE id = ?";
 
-	public boolean update(Appointment appointment) {
-		int updated = jdbcTemplate.update(
-			"UPDATE appointments SET doctor_full_name = ?, doctor_position = ?, appointment_time = ?, comment = ? WHERE id = ?",
-			appointment.getDoctorFullName(),
-			appointment.getDoctorPosition(),
-			appointment.getAppointmentTime(),
-			appointment.getComment(),
-			appointment.getId()
-		);
-		return updated > 0;
-	}
+            Appointment appointment = jdbcTemplate.queryForObject(
+                    sql,
+                    ROW_MAPPER_BY_BEAN,
+                    id
+            );
 
-	public boolean deleteById(UUID id) {
-		int deleted = jdbcTemplate.update("DELETE FROM appointments WHERE id = ?", id);
-		return deleted > 0;
-	}
+            return Optional.ofNullable(appointment);
+        } catch (EmptyResultDataAccessException e) {
+            log.error("Error: there is no such entity", e);
+            return Optional.empty();
+        }
+    }
+
+    public List<Appointment> findAll() {
+        String sql = """
+                SELECT app.id AS a_id,
+                		app.patient_full_name AS p_fio,
+                		app.doctor_full_name AS d_fio,
+                		app.doctor_position AS d_pos,
+                		app.appointment_time AS app_time,
+                		app.created_at AS cr_time,
+                		app.comment AS comm
+                FROM appointments app
+                ORDER BY appointment_time ASC
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                ROW_MAPPER_MANUAL
+        );
+    }
+
+    public void insert(Appointment appointment) {
+        String sql = """
+                	INSERT INTO appointments (id, patient_full_name,
+                							  doctor_full_name, doctor_position,
+                							  appointment_time, created_at, comment)
+                	VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        jdbcTemplate.update(
+                sql,
+                appointment.getId(),
+                appointment.getPatientFullName(),
+                appointment.getDoctorFullName(),
+                appointment.getDoctorPosition(),
+                appointment.getAppointmentTime(),
+                appointment.getCreatedAt(),
+                appointment.getComment()
+        );
+    }
+
+    public boolean update(Appointment appointment) {
+        String sql = """
+                	UPDATE appointments
+                	SET doctor_full_name = ?, doctor_position = ?,
+                		appointment_time = ?, comment = ?
+                	WHERE id = ?
+                """;
+        int updated = jdbcTemplate.update(
+                sql,
+                appointment.getDoctorFullName(),
+                appointment.getDoctorPosition(),
+                appointment.getAppointmentTime(),
+                appointment.getComment(),
+                appointment.getId()
+        );
+        return updated > 0;
+    }
+
+    public boolean deleteById(UUID id) {
+        String sql = "DELETE FROM appointments WHERE id = ?";
+
+        int deleted = jdbcTemplate.update(sql, id);
+
+        return deleted > 0;
+    }
 }
